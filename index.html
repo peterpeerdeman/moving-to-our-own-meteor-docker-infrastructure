@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+
+        <title>Moving to our own meteor docker infrastructure</title>
+
+        <meta name="description" content="Moving to our own meteor docker infrastructure">
+        <meta name="author" content="Peter Peerdeman">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <link rel="stylesheet" href="css/reveal.min.css">
+        <link rel="stylesheet" href="css/theme/pp-reveal.css" id="theme">
+
+        <!-- For syntax highlighting -->
+        <!-- <link rel="stylesheet" href="lib/css/zenburn.css"> -->
+        <link rel="stylesheet" href="lib/css/googlecode.css">
+
+        <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+        <script>
+            document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section class="pp-title">
+                    <h3>Moving to our own meteor docker infrastructure</h3>
+                    <p>
+                        <img src="images/peter2.png" alt="">
+                    </p>
+                    <img src="images/logo-white.png"/>
+                    <p>
+                        <a href="http://twitter.com/peterpeerdeman">@peterpeerdeman</a>
+                    </p>
+                </section>
+                <section data-background="images/payoff-slide.png">
+                </section>
+                <section>
+                    <p>
+                        <img style="height: 120px; background-color:white; padding:20px" src="images/partup-logo.png" alt=""/>
+                        <img style="height: 120px; background-color:white; padding:20px" src="images/startdashboard.png" alt=""/>
+                    </p>
+                    <p class="fragment">
+                        <img style="height: 150px; background-color:white; padding:40px" src="images/meteor.png" alt=""/>
+                    </p>
+                </section>
+                <section>
+                        <p>from</p>
+                        <img style="height: 80px; background-color:black; padding:20px" src="images/modulus.png" alt="" />
+                        <div class="fragment">
+                            <p>to</p>
+                            <img style="height: 80px; background-color:white; padding:20px" src="images/docker.png" alt="" />
+                            <img style="height: 80px; background-color:white; padding:20px" src="images/jenkins.png" alt="" />
+                            <img style="height: 80px; background-color:white; padding:20px" src="images/digitalocean.png" alt="" />
+                        </div>
+                </section>
+                <section>
+                    <h2>Why</h2>
+                    <ul>
+                        <div class="fragment">
+                            <li>application portability</li>
+                        </div>
+                        <div class="fragment">
+                            <li>availability problems</li>
+                        </div>
+                        <div class="fragment">
+                            <li>support response</li>
+                        </div>
+                        <div class="fragment">
+                            <li>control over servers and expenses</li>
+                        </div>
+                        <div class="fragment">
+                            <li>scalability and reproducability</li>
+                        </div>
+                    </ul>
+                </section>
+                <section>
+                    <h2>What is Docker?</h2>
+                </section>
+                <section>
+                    <img style="height: 80px; background-color:white; padding:20px" src="images/docker.png" alt="" />
+                    <blockquote>"Docker is an open-source program that enables a Linux application and its dependencies to be packaged as a container."</blockquote>
+                </section>
+                <section>
+                    <div style="display:inline-block">
+                        <img style="height: 350px; background-color:white; padding:20px" src="images/docker-vm.png" alt="" />
+                        <p>Virtual Machines</p>
+                    </div>
+                    <div style="display:inline-block">
+                        <img style="height: 226px; background-color:white; padding:20px" src="images/docker-docker.png" alt="" />
+                        <p>Containers</p>
+                    </div>
+                </section>
+                <section>
+                    <h2>In practice</h2>
+                    <p>Think of it like creating and mounting an ISO file</p>
+                </section>
+                <section>
+                    <h2>In practice</h2>
+                    <div style="display:inline-block;">
+                        <ul>
+                            <li>convert dvd to iso</li>
+                            <li>upload the iso file</li>
+                            <li>install fake dvd drive</li>
+                            <li>download iso</li>
+                            <li>mount iso</li>
+                        </ul>
+                    </div>
+                    <div style="display:inline-block;" class="fragment">
+                        <ul>
+                            <li>building a container</li>
+                            <li>pushing container to repository</li>
+                            <li>install docker</li>
+                            <li>pull container</li>
+                            <li>run the container</li>
+                        </ul>
+                    </div>
+                </section>
+                <section>
+                    <h3>Docker build file</h3>
+                    <pre>
+                        <code class="bash">
+FROM node:0.10.40-wheezy
+
+RUN curl https://install.meteor.com/ | sh && \
+    apt-get install -y imagemagick
+
+COPY . /code
+WORKDIR /code
+
+RUN cd app && \
+    meteor build --directory . && \
+    cd bundle/programs/server && \
+    npm install
+
+EXPOSE 3000
+CMD ["node", "app/bundle/main.js"]
+                        </code>
+                    </pre>
+                </section>
+                <section>
+                    <h3>building and pushing the docker image</h3>
+                    <pre>
+                        <code>
+
+docker build . --tag=$GIT_COMMIT
+
+                        </code>
+                    </pre>
+                    <pre>
+                        <code>
+
+docker login -e test@test.com -p password
+docker push lifely/partup:$GIT_COMMIT
+
+                        </code>
+                    </pre>
+                </section>
+                <section>
+                    <img style="background-color:white; padding:20px" src="images/jenkins.png" alt="" />
+                    <blockquote>"Jenkins is an award-winning, cross-platform, continuous integration and continuous delivery application that increases your productivity."</blockquote>
+                </section>
+                <section>
+                    <img src="images/jenkins-dockerbuild.png" alt="" />
+                    <p><a href="https://wiki.jenkins-ci.org/display/JENKINS/Docker+build+step+plugin">Jenkins "Docker build step plugin"</a></p>
+                    <p>triggers on each git commit</p>
+                </section>
+                <section>
+                    <img src="images/jenkins-dockerbuild-output.png" alt="" />
+                </section>
+                <section>
+                    <h3>pull and run the container</h3>
+                    <pre>
+                        <code class="bash">
+
+docker pull lifely/partup:$GIT_COMMIT
+
+                        </code>
+                    </pre>
+                    <pre>
+                        <code class="bash">
+
+docker run lifely/partup:$GIT_COMMIT -p 3000:3000 -e MONGO_URL=mongodb://locationofyourmongo -e MAIL_URL: smtp://locationofyouremailserver
+
+                        </code>
+                    </pre>
+                </section>
+                <section>
+                    <h3>Ansible docker module</h3>
+                    <pre>
+                        <code class="yml">
+---
+- name: docker | start application
+  docker:
+    name: app
+    image: "lifely/partup:{{ tag }}"
+    username: "{{ docker.registry.username }}"
+    email: "{{ docker.registry.email }}"
+    password: "{{ docker.registry.password }}"
+    state: reloaded
+    restart_policy: always
+    pull: always
+    ports:
+      - "{{ansible_eth1.ipv4.address}}:3000:3000"
+    env: "{{ app.env }}"
+  tags: app
+
+                        </code>
+                    </pre>
+                    <p><a href="http://docs.ansible.com/ansible/docker_module.html">http://docs.ansible.com/ansible/docker_module.html</a></p>
+                </section>
+                <section>
+                    <h1>DEMO</h1>
+                </section>
+                <section>
+                    <h2>Disadvantages</h2>
+                    <ul>
+                        <li>Ops experience required</li>
+                        <li>Plenty of alternatives (modulus, scalingo, galaxy)</li>
+                        <li>Image building lengthens deploy loop cycle</li>
+                        <li>Own loadbalancing required when scaling</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Advantages</h2>
+                    <ul>
+                        <li>Hassle free instance creation</li>
+                        <li>Full control over servers/ instances</li>
+                        <li>Portability of application</li>
+                        <li>Cheaper than hosted alternatives</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>Should everyone be doing this?</h2>
+                    <blockquote>
+                       "not necessarily, but give it a shot when needed"
+                    </blockquote>
+                </section>
+                <section class="pp-title">
+                    <h3>Thank you for your attention</h3>
+                </section>
+                <section class="pp-title">
+                    <h3>Moving to our own meteor docker infrastructure</h3>
+                    <p>
+                        <img src="images/peter2.png" alt="">
+                    </p>
+                    <img src="images/logo-white.png"/>
+                    <p>
+                        <a href="http://twitter.com/peterpeerdeman">@peterpeerdeman</a>
+                    </p>
+                </section>
+            </div>
+
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.min.js"></script>
+
+        <script>
+
+            // Full list of configuration options available here:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+                theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+
+                // Optional libraries used to extend on reveal.js
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
