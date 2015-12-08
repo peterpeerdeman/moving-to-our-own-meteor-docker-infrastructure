@@ -74,7 +74,7 @@
                             <li>availability problems</li>
                         </div>
                         <div class="fragment">
-                            <li>support response</li>
+                            <li>slow support response</li>
                         </div>
                         <div class="fragment">
                             <li>control over servers and expenses</li>
@@ -220,6 +220,23 @@ docker run lifely/partup:$GIT_COMMIT -p 3000:3000 -e MONGO_URL=mongodb://locatio
                     <p><a href="http://docs.ansible.com/ansible/docker_module.html">http://docs.ansible.com/ansible/docker_module.html</a></p>
                 </section>
                 <section>
+                    <h2>Loadbalancer</h2>
+                    <h3>Nginx + <a href="https://bitbucket.org/nginx-goodies/nginx-sticky-module-ng/">Nginx Sticky Module</a></h3>
+                </section>
+                <section>
+                    <h2>nginx config</h2>
+                    <pre>
+                        <code class="nginx">
+upstream webapp {
+    sticky secure;
+    server 10.131.97.50:3000;
+    server 10.131.77.207:3000;
+}
+                        </code>
+                    </pre>
+                    <p><a href="https://bitbucket.org/nginx-goodies/nginx-sticky-module-ng/">https://bitbucket.org/nginx-goodies/nginx-sticky-module-ng/</a></h3>
+                </section>
+                <section>
                     <h1>DEMO</h1>
                 </section>
                 <section>
@@ -242,8 +259,8 @@ docker run lifely/partup:$GIT_COMMIT -p 3000:3000 -e MONGO_URL=mongodb://locatio
                 </section>
                 <section>
                     <h2>Should everyone be doing this?</h2>
-                    <blockquote>
-                       "not necessarily, but give it a shot when needed"
+                    <blockquote class="fragment">
+                       "no"
                     </blockquote>
                 </section>
                 <section class="pp-title">
